@@ -35,34 +35,48 @@
             chat.appendChild(msgDiv);
             chat.scrollTop = chat.scrollHeight;
         }
+async function getResponse(query) {
+    try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${API_KEY}`
+            },
+            body: JSON.stringify({
+                model: "gpt-3.5-turbo",
+                messages: [
+                    {
+                        "role": "system",
+                        "content": "You are Blackberry, a deeply knowledgeable and charismatic budtender..."
+                    },
+                    {
+                        "role": "user",
+                        "content": query
+                    }
+                ]
+            })
+        });
 
-        async function getResponse(query) {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${API_KEY}`
-        },
-        body: JSON.stringify({
-            model: "gpt-3.5-turbo",
-            messages: [
-                {
-                    "role": "system",
-                    "content": "You are Blackberry, a deeply knowledgeable and charismatic budtender..."
-                },
-                {
-                    "role": "user",
-                    "content": query
-                }
-            ]
-        })
-    });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-    const data = await response.json();
-    let botResponse = data.choices[0].message.content.trim();
-    botResponse = botResponse.replace("As an AI language model, I do not have feelings.", "");
-    return botResponse;
+        const data = await response.json();
+
+        if (!data || !data.choices || data.choices.length === 0) {
+            throw new Error("Invalid response from the API");
+        }
+
+        let botResponse = data.choices[0].message.content.trim();
+        botResponse = botResponse.replace("As an AI language model, I do not have feelings.", "");
+        return botResponse;
+    } catch (error) {
+        console.error('There has been a problem with your fetch operation:', error);
+        return "Apologies, there was an error processing your request. Please try again.";
+    }
 }
+
 
 
         chatForm.addEventListener("submit", async (e) => {
